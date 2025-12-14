@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Real Gesture UI Control</title>
+<title>Gesture Ball Control</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- MediaPipe -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <style>
@@ -14,27 +15,32 @@
     margin: 0;
     height: 100%;
     overflow: hidden;
+    background: #0a0a0a;
   }
 
-  body {
-    background: linear-gradient(135deg, #141e30, #243b55);
-    transition: background 0.8s ease;
-    font-family: system-ui, sans-serif;
-  }
-
-  /* camera hidden but running */
   video {
     display: none;
   }
 
+  #ball {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff, #00f2ff);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: left 0.08s linear, top 0.08s linear;
+  }
+
   .hint {
     position: fixed;
-    bottom: 20px;
+    bottom: 15px;
     width: 100%;
     text-align: center;
-    color: rgba(255,255,255,0.85);
-    font-size: 16px;
-    letter-spacing: 0.5px;
+    color: #aaa;
+    font-size: 14px;
   }
 </style>
 </head>
@@ -42,32 +48,27 @@
 <body>
 
 <video id="video" autoplay playsinline></video>
-<div class="hint">✋ Move hand LEFT or RIGHT (slow & clear)</div>
+<div id="ball"></div>
+<div class="hint">✋ Move hand | 🙂 Turn face</div>
 
 <script>
-/* ---------------- CONFIG ---------------- */
-
-const BACKGROUNDS = [
-  "linear-gradient(135deg, #141e30, #243b55)",
-  "linear-gradient(135deg, #ff512f, #dd2476)",
-  "linear-gradient(135deg, #11998e, #38ef7d)",
-  "linear-gradient(135deg, #4568dc, #b06ab3)",
-  "linear-gradient(135deg, #fc466b, #3f5efb)"
-];
-
-const MOVE_THRESHOLD = 0.18;   // how much hand must move
-const COOLDOWN_MS = 900;       // time between gestures
-
-/* ---------------------------------------- */
-
 const video = document.getElementById("video");
+const ball = document.getElementById("ball");
 
-let startX = null;
-let lastGestureTime = 0;
-let bgIndex = 0;
+/* -------- BALL STATE -------- */
+let x = window.innerWidth / 2;
+let y = window.innerHeight / 2;
+const SPEED = 12;
 
-/* --------- HANDS SETUP --------- */
+/* -------- APPLY POSITION -------- */
+function updateBall() {
+  x = Math.max(35, Math.min(window.innerWidth - 35, x));
+  y = Math.max(35, Math.min(window.innerHeight - 35, y));
+  ball.style.left = x + "px";
+  ball.style.top = y + "px";
+}
 
+/* -------- HANDS -------- */
 const hands = new Hands({
   locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
 });
@@ -78,48 +79,47 @@ hands.setOptions({
   minTrackingConfidence: 0.6
 });
 
-/* --------- CORE LOGIC --------- */
+hands.onResults(res => {
+  if (!res.multiHandLandmarks) return;
 
-hands.onResults(results => {
-  if (!results.multiHandLandmarks) {
-    startX = null;
-    return;
-  }
+  const palm = res.multiHandLandmarks[0][9]; // palm center
+  const dx = (palm.x - 0.5) * SPEED * 2;
+  const dy = (palm.y - 0.5) * SPEED * 2;
 
-  const now = Date.now();
-  if (now - lastGestureTime < COOLDOWN_MS) return;
-
-  // palm center (very stable point)
-  const palmX = results.multiHandLandmarks[0][9].x;
-
-  if (startX === null) {
-    startX = palmX;
-    return;
-  }
-
-  const delta = palmX - startX;
-
-  if (Math.abs(delta) < MOVE_THRESHOLD) return;
-
-  if (delta > 0) {
-    // RIGHT swipe
-    bgIndex = (bgIndex + 1) % BACKGROUNDS.length;
-  } else {
-    // LEFT swipe
-    bgIndex = (bgIndex - 1 + BACKGROUNDS.length) % BACKGROUNDS.length;
-  }
-
-  document.body.style.background = BACKGROUNDS[bgIndex];
-
-  startX = null;
-  lastGestureTime = now;
+  x += dx;
+  y += dy;
+  updateBall();
 });
 
-/* --------- CAMERA --------- */
+/* -------- FACE -------- */
+const face = new FaceMesh({
+  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`
+});
 
+face.setOptions({
+  maxNumFaces: 1,
+  refineLandmarks: false,
+  minDetectionConfidence: 0.6,
+  minTrackingConfidence: 0.6
+});
+
+face.onResults(res => {
+  if (!res.multiFaceLandmarks) return;
+
+  const nose = res.multiFaceLandmarks[0][1];
+  const dx = (nose.x - 0.5) * SPEED;
+  const dy = (nose.y - 0.5) * SPEED;
+
+  x += dx;
+  y += dy;
+  updateBall();
+});
+
+/* -------- CAMERA -------- */
 const camera = new Camera(video, {
   onFrame: async () => {
     await hands.send({ image: video });
+    await face.send({ image: video });
   },
   width: 640,
   height: 480
