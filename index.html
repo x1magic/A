@@ -1,109 +1,185 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <title>AI Gesture Recognizer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Login</title>
-    <link rel="stylesheet" href="style.css"> 
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3/drawing_utils.js" crossorigin="anonymous"></script>
+
     <style>
-        /* This is the starting CSS to center the form. You will add more in a style.css file! */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+            margin: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            height: 100vh;
+            background-color: #1a1a2e; /* Dark theme */
+            color: #ffffff;
+            transition: background-color 0.5s ease; /* Smooth color change */
         }
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
+        #video-container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            box-shadow: 0 8px 30px rgba(0, 255, 170, 0.4);
+            border-radius: 10px;
         }
-        /* Basic styling for form elements */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
+        #webcam {
+            /* Flips the video so it feels like a mirror */
+            transform: scaleX(-1); 
             display: block;
-            margin-bottom: 8px;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+        #gesture-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            /* Canvas must also be flipped to match the video */
+            transform: scaleX(-1); 
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 1.5em;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             font-weight: bold;
-            color: #333;
-        }
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box; /* Important for padding to stay inside width */
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
 
-    <main class="login-container">
-        <h1>Welcome Back</h1>
+    <div id="status">Loading AI model...</div>
 
-        <form action="/login" method="POST">
-            
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="you@example.com"
-                    autocomplete="username" 
-                    required
-                >
-            </div>
+    <div id="video-container">
+        <video id="webcam" autoplay playsinline width="640" height="480"></video>
+        <canvas id="gesture-canvas" width="640" height="480"></canvas>
+    </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Enter your password"
-                    autocomplete="current-password" 
-                    required
-                >
-            </div>
-            
-            <p style="text-align: right; margin-top: -10px; margin-bottom: 25px;">
-                <a href="/forgot-password" class="forgot-password-link">Forgot Password?</a>
-            </p>
-
-            <button type="submit">
-                Log In
-            </button>
-            
-        </form>
-        
-        <p style="text-align: center; margin-top: 20px;">
-            Don't have an account? <a href="/signup">Sign Up</a>
-        </p>
-
-    </main>
+    <h1>AI Gesture Control Example: Closed Fist changes color!</h1>
     
+    <script>
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('gesture-canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        
+        // --- GESTURE CLASSIFICATION LOGIC ---
+        function checkGesture(landmarks) {
+            // A simple way to check for a closed fist:
+            // Check if the tips of the fingers (landmarks 8, 12, 16, 20) 
+            // are significantly below their middle joints (landmarks 7, 11, 15, 19).
+            
+            // Check Index Finger (Tip 8 vs Middle 7)
+            const isIndexClosed = landmarks[8].y > landmarks[7].y;
+            // Check Middle Finger (Tip 12 vs Middle 11)
+            const isMiddleClosed = landmarks[12].y > landmarks[11].y;
+            // Check Ring Finger (Tip 16 vs Middle 15)
+            const isRingClosed = landmarks[16].y > landmarks[15].y;
+            // Check Pinky Finger (Tip 20 vs Middle 19)
+            const isPinkyClosed = landmarks[20].y > landmarks[19].y;
+
+            // Check Thumb (Tip 4 vs Middle 3) - The thumb is often tricky, so a simple check is best
+            const isThumbClose = landmarks[4].x < landmarks[3].x; // Simple horizontal check
+            
+            // If all four fingers are below their mid-joint, it's likely a fist.
+            if (isIndexClosed && isMiddleClosed && isRingClosed && isPinkyClosed) {
+                return 'CLOSED_FIST';
+            } else if (isIndexClosed && isMiddleClosed && isRingClosed && isPinkyClosed && isThumbClose) {
+                return 'CLOSED_FIST_TIGHT';
+            } else {
+                return 'OPEN_HAND';
+            }
+        }
+
+        function onResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                for (const landmarks of results.multiHandLandmarks) {
+                    
+                    // 1. Draw the Hand Landmarks (Visual AI output) 
+                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
+                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 2, radius: 8 });
+
+                    // 2. Classify the Gesture
+                    const gesture = checkGesture(landmarks);
+
+                    // 3. Perform Action based on Gesture
+                    if (gesture === 'CLOSED_FIST' || gesture === 'CLOSED_FIST_TIGHT') {
+                        statusDiv.textContent = "GESTURE DETECTED: CLOSED FIST!";
+                        document.body.style.backgroundColor = "darkred";
+                    } else {
+                        statusDiv.textContent = "GESTURE: OPEN HAND/OTHER";
+                        document.body.style.backgroundColor = "#1a1a2e"; // Reset color
+                    }
+                }
+            } else {
+                statusDiv.textContent = "No hand detected. Show your hand to the camera.";
+            }
+
+            canvasCtx.restore();
+        }
+
+        // --- MEDIAPIPE SETUP (Standard boilerplate) ---
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`;
+            }
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.5
+        });
+
+        hands.onResults(onResults);
+
+        // --- CAMERA SETUP ---
+        class Camera {
+            constructor(videoElement, config) {
+                this.videoElement = videoElement;
+                this.onFrame = config.onFrame;
+            }
+            async start() {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({
+                        'video': { width: 640, height: 480 }
+                    });
+                    return new Promise((resolve) => {
+                        this.videoElement.onloadedmetadata = () => {
+                            this.videoElement.play();
+                            this.videoElement.addEventListener('playing', () => {
+                                setInterval(this.onFrame, 30); // Process frame every ~30ms
+                                resolve();
+                            });
+                        };
+                    });
+                }
+            }
+        }
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
+            }
+        });
+
+        camera.start().then(() => {
+            statusDiv.textContent = "Webcam Active. Show your hand!";
+        }).catch(err => {
+            statusDiv.textContent = "ERROR: Webcam access denied or not available.";
+            console.error('Camera startup failed:', err);
+        });
+        
+    </script>
 </body>
 </html>
