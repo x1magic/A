@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Hand Gesture AI</title>
+<title>Gesture UI Control</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
@@ -11,37 +11,50 @@
 <style>
   body {
     margin: 0;
-    background: #000;
-    color: #0f0;
-    font-family: system-ui, sans-serif;
-    text-align: center;
+    height: 100vh;
+    transition: background 0.6s ease;
+    background: linear-gradient(135deg, #111, #222);
+    overflow: hidden;
   }
-  h2 { margin-top: 10px; }
+
+  /* camera hidden */
   video {
-    width: 95%;
-    max-width: 420px;
-    border-radius: 14px;
-    margin-top: 10px;
+    display: none;
   }
-  #status {
-    margin-top: 12px;
+
+  .info {
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    color: #fff;
     font-size: 18px;
+    opacity: 0.8;
   }
 </style>
 </head>
 
 <body>
-  <h2>✋ Hand Gesture AI</h2>
-  <video id="video" autoplay playsinline></video>
-  <div id="status">Camera starting…</div>
+
+<video id="video" autoplay playsinline></video>
+<div class="info">✋ Slide hand LEFT / RIGHT</div>
 
 <script>
 const video = document.getElementById("video");
-const statusText = document.getElementById("status");
+let lastX = null;
+
+const colors = [
+  "linear-gradient(135deg, #ff416c, #ff4b2b)",
+  "linear-gradient(135deg, #2193b0, #6dd5ed)",
+  "linear-gradient(135deg, #cc2b5e, #753a88)",
+  "linear-gradient(135deg, #11998e, #38ef7d)",
+  "linear-gradient(135deg, #fc466b, #3f5efb)"
+];
+
+let colorIndex = 0;
 
 const hands = new Hands({
-  locateFile: (file) =>
-    `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
 });
 
 hands.setOptions({
@@ -51,11 +64,32 @@ hands.setOptions({
 });
 
 hands.onResults(results => {
-  if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-    statusText.innerText = "✅ Hand Detected";
-  } else {
-    statusText.innerText = "❌ No Hand";
+  if (!results.multiHandLandmarks) return;
+
+  const hand = results.multiHandLandmarks[0];
+  const x = hand[9].x; // palm center
+
+  if (lastX !== null) {
+    const diff = x - lastX;
+
+    if (diff > 0.04) {
+      // swipe RIGHT
+      colorIndex = (colorIndex + 1) % colors.length;
+      document.body.style.background = colors[colorIndex];
+      lastX = null;
+      return;
+    }
+
+    if (diff < -0.04) {
+      // swipe LEFT
+      colorIndex = (colorIndex - 1 + colors.length) % colors.length;
+      document.body.style.background = colors[colorIndex];
+      lastX = null;
+      return;
+    }
   }
+
+  lastX = x;
 });
 
 const camera = new Camera(video, {
@@ -68,5 +102,6 @@ const camera = new Camera(video, {
 
 camera.start();
 </script>
+
 </body>
 </html>
