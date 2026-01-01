@@ -1,185 +1,179 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Gesture Recognizer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3/drawing_utils.js" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sanvaliya Seth – Designer Card</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #1a1a2e; /* Dark theme */
-            color: #ffffff;
-            transition: background-color 0.5s ease; /* Smooth color change */
-        }
-        #video-container {
-            position: relative;
-            width: 640px;
-            height: 480px;
-            box-shadow: 0 8px 30px rgba(0, 255, 170, 0.4);
-            border-radius: 10px;
-        }
-        #webcam {
-            /* Flips the video so it feels like a mirror */
-            transform: scaleX(-1); 
-            display: block;
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-        }
-        #gesture-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            /* Canvas must also be flipped to match the video */
-            transform: scaleX(-1); 
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 1.5em;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            font-weight: bold;
-        }
-    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap');
+
+:root {
+  --bg:#F7F3EF;
+  --card:#F9F5F0;
+  --dark:#262320;
+  --accent:#A797B2;
+  --border:#D3C9BC;
+}
+
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);
+  color:var(--dark);
+  margin:0;
+  padding:0;
+  -webkit-font-smoothing:antialiased;
+}
+
+.mesh-bg{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  background:
+    radial-gradient(at 0% 0%, rgba(167,151,178,.06), transparent 50%),
+    radial-gradient(at 100% 100%, rgba(211,201,188,.12), transparent 50%);
+}
+
+.paper{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+#snow{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:30;
+}
+
+.snow{
+  position:absolute;
+  top:-10vh;
+  color:white;
+  animation:fall linear infinite;
+  user-select:none;
+  text-shadow:0 0 5px rgba(255,255,255,.3);
+}
+
+@keyframes fall{
+  to{transform:translateY(110vh) translateX(var(--x)) rotate(var(--r))}
+}
+
+@media print{
+  .no-print{display:none!important}
+  body{background:white}
+  #snow{display:none}
+}
+</style>
 </head>
-<body>
 
-    <div id="status">Loading AI model...</div>
+<body class="min-h-screen flex items-center justify-center px-4 py-6 sm:p-12">
+<div class="mesh-bg"></div>
+<div id="snow"></div>
 
-    <div id="video-container">
-        <video id="webcam" autoplay playsinline width="640" height="480"></video>
-        <canvas id="gesture-canvas" width="640" height="480"></canvas>
+<div class="w-full max-w-[380px] flex flex-col items-center relative z-10">
+
+  <!-- Header -->
+  <div class="mb-8 no-print">
+    <div class="px-6 py-2 rounded-full bg-white/70 border border-[var(--border)] text-[10px] tracking-[0.35em] font-bold uppercase">
+      ❄️Winter Edition
     </div>
+  </div>
 
-    <h1>AI Gesture Control Example: Closed Fist changes color!</h1>
-    
-    <script>
-        const videoElement = document.getElementById('webcam');
-        const canvasElement = document.getElementById('gesture-canvas');
-        const canvasCtx = canvasElement.getContext('2d');
-        const statusDiv = document.getElementById('status');
-        
-        // --- GESTURE CLASSIFICATION LOGIC ---
-        function checkGesture(landmarks) {
-            // A simple way to check for a closed fist:
-            // Check if the tips of the fingers (landmarks 8, 12, 16, 20) 
-            // are significantly below their middle joints (landmarks 7, 11, 15, 19).
-            
-            // Check Index Finger (Tip 8 vs Middle 7)
-            const isIndexClosed = landmarks[8].y > landmarks[7].y;
-            // Check Middle Finger (Tip 12 vs Middle 11)
-            const isMiddleClosed = landmarks[12].y > landmarks[11].y;
-            // Check Ring Finger (Tip 16 vs Middle 15)
-            const isRingClosed = landmarks[16].y > landmarks[15].y;
-            // Check Pinky Finger (Tip 20 vs Middle 19)
-            const isPinkyClosed = landmarks[20].y > landmarks[19].y;
+  <!-- Card -->
+  <div class="relative w-full min-h-[220px] rounded-xl shadow-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden">
 
-            // Check Thumb (Tip 4 vs Middle 3) - The thumb is often tricky, so a simple check is best
-            const isThumbClose = landmarks[4].x < landmarks[3].x; // Simple horizontal check
-            
-            // If all four fingers are below their mid-joint, it's likely a fist.
-            if (isIndexClosed && isMiddleClosed && isRingClosed && isPinkyClosed) {
-                return 'CLOSED_FIST';
-            } else if (isIndexClosed && isMiddleClosed && isRingClosed && isPinkyClosed && isThumbClose) {
-                return 'CLOSED_FIST_TIGHT';
-            } else {
-                return 'OPEN_HAND';
-            }
-        }
+    <div class="absolute inset-0 paper opacity-20"></div>
 
-        function onResults(results) {
-            canvasCtx.save();
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                for (const landmarks of results.multiHandLandmarks) {
-                    
-                    // 1. Draw the Hand Landmarks (Visual AI output) 
-                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
-                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 2, radius: 8 });
+    <div class="relative p-6 sm:p-8 flex flex-col h-full">
 
-                    // 2. Classify the Gesture
-                    const gesture = checkGesture(landmarks);
+      <!-- Title -->
+      <h1 class="font-serif text-[22px] sm:text-3xl tracking-[0.08em] uppercase flex items-center gap-2">
+        Sanvaliya <span class="font-bold text-[var(--accent)]">Seth</span>
+      </h1>
 
-                    // 3. Perform Action based on Gesture
-                    if (gesture === 'CLOSED_FIST' || gesture === 'CLOSED_FIST_TIGHT') {
-                        statusDiv.textContent = "GESTURE DETECTED: CLOSED FIST!";
-                        document.body.style.backgroundColor = "darkred";
-                    } else {
-                        statusDiv.textContent = "GESTURE: OPEN HAND/OTHER";
-                        document.body.style.backgroundColor = "#1a1a2e"; // Reset color
-                    }
-                }
-            } else {
-                statusDiv.textContent = "No hand detected. Show your hand to the camera.";
-            }
+      <p class="mt-1 text-[9px] uppercase tracking-[0.4em] font-bold text-gray-600">
+        Exquisite Retail Experience
+      </p>
 
-            canvasCtx.restore();
-        }
+      <!-- Services -->
+      <div class="mt-5 border-l border-[var(--border)] pl-4 text-[12px] italic font-semibold text-gray-700">
+        Stationery · Korean Collections · Bespoke Gifts · Toys
+      </div>
 
-        // --- MEDIAPIPE SETUP (Standard boilerplate) ---
-        const hands = new Hands({
-            locateFile: (file) => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`;
-            }
-        });
+      <!-- Icons -->
+      <div class="mt-auto pt-4 flex items-center justify-between gap-3">
+        <div class="flex gap-4 bg-white/80 px-4 py-3 rounded-xl border border-white shadow-sm">
+          <a href="tel:+918302817703"><i class="fa-solid fa-phone text-lg"></i></a>
+          <a href="https://wa.me/918302817703"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+          <a href="https://www.instagram.com/sawiya_sty.general.s.dhmnod" target="_blank"><i class="fa-brands fa-instagram text-lg"></i></a>
+          <a href="https://www.google.com/maps/search/6F7F%2BM6+Dhamnod,+Madhya+Pradesh" target="_blank"><i class="fa-solid fa-location-dot text-lg"></i></a>
+        </div>
+        <div class="text-right hidden sm:block text-[9px] font-bold tracking-widest">
+          DHAMNOD<br>MP
+        </div>
+      </div>
+    </div>
+  </div>
 
-        hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.7,
-            minTrackingConfidence: 0.5
-        });
+  <!-- Buttons -->
+  <div class="mt-10 no-print flex gap-10">
+    <button onclick="window.print()" class="text-center">
+      <div class="w-14 h-14 rounded-full border border-[var(--border)] flex items-center justify-center bg-white shadow hover:bg-black hover:text-white transition">
+        <i class="fa-solid fa-print"></i>
+      </div>
+      <div class="mt-2 text-[9px] tracking-widest font-bold">PDF</div>
+    </button>
 
-        hands.onResults(onResults);
+    <button onclick="shareCard()" class="text-center">
+      <div class="w-14 h-14 rounded-full border border-[var(--border)] flex items-center justify-center bg-white shadow hover:bg-[var(--accent)] hover:text-white transition">
+        <i class="fa-solid fa-share-nodes"></i>
+      </div>
+      <div class="mt-2 text-[9px] tracking-widest font-bold">SHARE</div>
+    </button>
+  </div>
 
-        // --- CAMERA SETUP ---
-        class Camera {
-            constructor(videoElement, config) {
-                this.videoElement = videoElement;
-                this.onFrame = config.onFrame;
-            }
-            async start() {
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({
-                        'video': { width: 640, height: 480 }
-                    });
-                    return new Promise((resolve) => {
-                        this.videoElement.onloadedmetadata = () => {
-                            this.videoElement.play();
-                            this.videoElement.addEventListener('playing', () => {
-                                setInterval(this.onFrame, 30); // Process frame every ~30ms
-                                resolve();
-                            });
-                        };
-                    });
-                }
-            }
-        }
+  <!-- Footer -->
+  <div class="mt-14 text-center opacity-70 no-print">
+    <p class="font-serif italic text-lg">Quality & Tradition hand in hand.</p>
+    <p class="mt-3 text-sm tracking-[0.35em] font-bold uppercase">Thank You to vist Here.💥🎉</p>
+  </div>
+</div>
 
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await hands.send({ image: videoElement });
-            }
-        });
+<script>
+const snowCount = innerWidth < 640 ? 25 : 60;
+const snowBox = document.getElementById('snow');
+const chars = ['❄','❅','❆'];
 
-        camera.start().then(() => {
-            statusDiv.textContent = "Webcam Active. Show your hand!";
-        }).catch(err => {
-            statusDiv.textContent = "ERROR: Webcam access denied or not available.";
-            console.error('Camera startup failed:', err);
-        });
-        
-    </script>
+for(let i=0;i<snowCount;i++){
+  const s=document.createElement('div');
+  s.className='snow';
+  s.textContent=chars[Math.floor(Math.random()*3)];
+  s.style.left=Math.random()*100+'%';
+  s.style.fontSize=10+Math.random()*18+'px';
+  s.style.opacity=.3+Math.random()*.6;
+  s.style.animationDuration=8+Math.random()*14+'s';
+  s.style.setProperty('--x',(Math.random()*200-100)+'px');
+  s.style.setProperty('--r',Math.random()*720+'deg');
+  snowBox.appendChild(s);
+}
+
+function shareCard(){
+  if(navigator.share){
+    navigator.share({
+      title:'Sanvaliya Seth',
+      text:'Digital Visiting Card',
+      url:location.href
+    });
+  }else{
+    alert('Copy link and share manually');
+  }
+}
+</script>
 </body>
 </html>
