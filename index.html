@@ -3,333 +3,606 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sanvaliya Seth - Designer Card</title>
+    <title>Sanvaliya Seth - Premium Designer Card</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;700&display=swap');
         
         :root {
-            --bg-cream: #F7F3EF;
-            --card-base: #F9F5F0;
+            --bg-cream: #F8F5F2;
             --text-dark: #262320;
             --accent-purple: #A797B2;
-            --border-beige: #D3C9BC;
+            --doraemon-blue: #00A0E9;
+            --doraemon-red: #ED1C24;
+            --doraemon-yellow: #FFD200;
         }
 
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-cream);
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             color: var(--text-dark);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100dvh;
         }
 
         .mesh-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            background: 
-                radial-gradient(at 0% 0%, rgba(167, 151, 178, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(211, 201, 188, 0.1) 0px, transparent 50%);
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(at 0% 0%, rgba(167, 151, 178, 0.08) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(0, 160, 233, 0.05) 0px, transparent 50%);
         }
 
         .paper-grain {
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* Snowfall Styles */
         #snow-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 50;
-            overflow: hidden;
+            position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden;
         }
 
         @keyframes snowfall-animation {
-            0% { 
-                transform: translateY(-10vh) translateX(0) rotate(0deg); 
-            }
-            100% { 
-                transform: translateY(110vh) translateX(var(--sway)) rotate(var(--rot)); 
-            }
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); }
+            100% { transform: translateY(110vh) translateX(var(--sway)) rotate(var(--rot)); }
         }
-        
+
         .snowflake {
-            position: absolute;
-            top: -10vh;
-            color: white;
-            user-select: none;
-            animation: snowfall-animation linear infinite;
-            text-shadow: 0 0 5px rgba(255,255,255,0.3);
-            font-family: serif;
-            opacity: 0; /* Hidden initially to avoid flash */
+            position: absolute; top: -10vh; color: white; user-select: none;
+            animation: snowfall-animation linear infinite; font-family: serif;
+            opacity: 0; pointer-events: none; transition: opacity 1s ease-in;
         }
 
-        /* Card Container Scaling */
+        .card-container {
+            perspective: 1000px;
+        }
+
         .card-inner {
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: center;
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            background: linear-gradient(135deg, #FFFFFF 0%, #F9FBFF 100%);
+            border-radius: 2px;
         }
         
-        @media (hover: hover) {
-            .card-container:hover .card-inner {
-                transform: translateY(-8px) scale(1.02);
-                box-shadow: 0 30px 60px rgba(0,0,0,0.12);
-            }
+        /* Official Scratch Voucher Styles */
+        #scratch-modal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: 100; align-items: center; justify-content: center;
+            backdrop-filter: blur(20px);
         }
 
-        /* Mobile specific card adjustments */
-        @media (max-width: 480px) {
-            .card-inner {
-                border-radius: 1.5rem;
-            }
-            .icon-tray {
-                gap: 0.5rem !important;
-                padding: 0.5rem 0.75rem !important;
-            }
-            .icon-tray i {
-                font-size: 1.1rem !important;
-            }
+        .scratch-box {
+            background: white; border-radius: 24px; padding: 40px 30px;
+            width: 90%; max-width: 400px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 40px 80px -20px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.5);
+            text-align: center;
+            position: relative;
         }
+
+        .official-seal {
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+            width: 65px; height: 65px; background: white;
+            border-radius: 50%; border: 1px solid #eee;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10;
+        }
+
+        .seal-inner {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: linear-gradient(135deg, #A797B2 0%, #262320 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 18px;
+        }
+
+        .scratch-container {
+            position: relative; width: 100%; height: 200px;
+            background: #fdfdfd; border-radius: 12px; margin: 25px auto;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid #f0f0f0;
+        }
+
+        .reward-ticket {
+            position: absolute; inset: 0;
+            background: #fff;
+            display: flex;
+            mask-image: radial-gradient(circle at left, transparent 10px, black 11px),
+                        radial-gradient(circle at right, transparent 10px, black 11px);
+            mask-size: 100% 40px;
+            mask-position: left, right;
+            mask-repeat: repeat-y;
+            padding: 10px;
+        }
+
+        .ticket-stub {
+            width: 70px;
+            border-right: 2px dashed #eee;
+            display: flex; align-items: center; justify-content: center;
+            background: #fafafa;
+        }
+
+        .stub-id {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 9px; font-weight: 800; letter-spacing: 3px;
+            color: #ccc; text-transform: uppercase;
+        }
+
+        .ticket-main {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 20px; position: relative;
+            background-image: radial-gradient(#eee 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: center;
+        }
+
+        .reward-title-main {
+            font-size: 10px; font-weight: 800; color: #A797B2;
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
+        }
+
+        .reward-value-main {
+            font-size: 24px; font-weight: 900; color: #262320;
+            line-height: 1; text-transform: uppercase;
+        }
+
+        .reward-serial {
+            font-size: 7px; font-weight: 600; color: #bbb;
+            margin-top: 12px; letter-spacing: 1px;
+        }
+
+        #scratch-canvas {
+            position: absolute; inset: 0; cursor: crosshair; z-index: 2;
+        }
+
+        .apply-btn {
+            background: #262320; color: white;
+            padding: 14px 32px; border-radius: 50px; font-weight: 800;
+            font-size: 12px; text-transform: uppercase; letter-spacing: 2px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            display: none; margin-top: 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .apply-btn.active { display: inline-block; animation: slideUpFade 0.6s forwards; }
+        @keyframes slideUpFade { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; }
-            .card-container { margin: 0 !important; transform: scale(1) !important; width: 100% !important; }
-            #snow-container { display: none !important; }
+            body { background: white !important; overflow: visible !important; }
+            .card-container { margin: 0 !important; transform: none !important; width: 100% !important; }
+            #snow-container, #scratch-modal { display: none !important; }
+            .card-inner { border-radius: 0 !important; box-shadow: none !important; border: 1px solid #ccc !important; transform: none !important; }
+        }
+
+        .toast {
+            position: fixed; bottom: 30px; background: #262320; color: white;
+            padding: 14px 28px; border-radius: 50px; font-size: 11px; font-weight: 700;
+            transform: translateY(100px); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .toast.show { transform: translateY(0); }
+
+        /* Stylish QR Scan Me Design */
+        .qr-wrapper {
+            position: relative;
+            padding: 40px;
+            display: inline-block;
+        }
+
+        .qr-frame {
+            position: relative;
+            padding: 12px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        /* Frame Corners */
+        .qr-frame::before, .qr-frame::after, 
+        .qr-frame-inner::before, .qr-frame-inner::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-color: #262320;
+            border-style: solid;
+        }
+
+        /* Top Left */
+        .qr-frame::before { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 8px 0 0 0; }
+        /* Top Right */
+        .qr-frame::after { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 8px 0 0; }
+        /* Bottom Left */
+        .qr-frame-inner::before { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 8px; }
+        /* Bottom Right */
+        .qr-frame-inner::after { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 8px 0; }
+
+        .scan-me-text {
+            font-family: 'Caveat', cursive;
+            font-size: 48px;
+            color: #262320;
+            margin-top: 10px;
+            line-height: 1;
+        }
+
+        .qr-arrow {
+            position: absolute;
+            right: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            opacity: 0.85;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 640px) {
+            .qr-arrow { right: -40px; width: 60px; }
+            .scan-me-text { font-size: 38px; }
         }
     </style>
 </head>
-<body class="p-4 sm:p-12 opacity-0 transition-opacity duration-1000">
-    <!-- Background Texture -->
+<body class="p-4 sm:p-12 opacity-0 transition-opacity duration-700">
     <div class="mesh-bg"></div>
-    
-    <!-- Snowfall Container -->
     <div id="snow-container"></div>
+    <div id="toast" class="toast">Voucher Activated ✨</div>
 
-    <!-- Main Wrapper - Optimized for Mobile Viewport -->
-    <div class="w-full max-w-[440px] relative z-10 flex flex-col items-center justify-center space-y-8 sm:space-y-12">
-        
-        <!-- Seasonal Header Tag -->
-        <div class="no-print">
-            <div class="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/70 border border-[#D3C9BC]/40 shadow-sm backdrop-blur-md">
-                <i class="fa-solid fa-snowflake text-[#A797B2] animate-pulse"></i>
-                <span class="text-[9px] sm:text-[10px] font-extrabold text-[#423D39] uppercase tracking-[0.3em]">Winter Collection</span>
-            </div>
-        </div>
-
-        <!-- The Visiting Card - Fit to Mobile Screen -->
-        <div class="card-container relative w-full aspect-[1.58/1] sm:aspect-[1.65/1] group select-none">
-            <!-- Shadow Depth -->
-            <div class="absolute inset-6 bg-stone-900/10 blur-3xl rounded-xl -z-10"></div>
-
-            <!-- Card Body -->
-            <div class="card-inner absolute inset-0 bg-[#F9F5F0] rounded-[20px] sm:rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.06)] overflow-hidden border border-[#E8E2D9]">
-                
-                <!-- Grain Texture -->
-                <div class="absolute inset-0 opacity-[0.2] pointer-events-none z-0 paper-grain"></div>
-
-                <!-- Mandala SVG Background (Top) -->
-                <div class="absolute top-[-100px] sm:top-[-80px] left-1/2 -translate-x-1/2 w-[350px] sm:w-[320px] h-[350px] sm:h-[320px] opacity-[0.08] pointer-events-none z-10 transition-opacity duration-1000 group-hover:opacity-[0.12]">
-                    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full rotate-[15deg]">
-                        <circle cx="100" cy="100" r="40" stroke="#4A443D" stroke-width="0.5" stroke-dasharray="2 2" />
-                        <g transform="rotate(0 100 100)"><path d="M100 20C110 40 120 60 100 80C80 60 90 40 100 20Z" fill="#4A443D" /><circle cx="100" cy="50" r="3" fill="#4A443D" /></g>
-                        <g transform="rotate(30 100 100)"><path d="M100 20C110 40 120 60 100 80C80 60 90 40 100 20Z" fill="#4A443D" /><circle cx="100" cy="50" r="3" fill="#4A443D" /></g>
-                        <g transform="rotate(60 100 100)"><path d="M100 20C110 40 120 60 100 80C80 60 90 40 100 20Z" fill="#4A443D" /><circle cx="100" cy="50" r="3" fill="#4A443D" /></g>
-                        <g transform="rotate(90 100 100)"><path d="M100 20C110 40 120 60 100 80C80 60 90 40 100 20Z" fill="#4A443D" /><circle cx="100" cy="50" r="3" fill="#4A443D" /></g>
-                        <g transform="rotate(120 100 100)"><path d="M100 20C110 40 120 60 100 80C80 60 90 40 100 20Z" fill="#4A443D" /><circle cx="100" cy="50" r="3" fill="#4A443D" /></g>
-                        <g transform="rotate(150 100 100)"><path d="M100 20C110 40 120 60 100 80C80 60 90 40 100 20Z" fill="#4A443D" /><circle cx="100" cy="50" r="3" fill="#4A443D" /></g>
-                        <circle cx="100" cy="100" r="70" stroke="#4A443D" stroke-width="0.2" />
-                    </svg>
+    <!-- Scratch Modal -->
+    <div id="scratch-modal" onclick="closeScratch(event)">
+        <div class="scratch-box" onclick="event.stopPropagation()">
+            <div class="official-seal">
+                <div class="seal-inner">
+                    <i class="fa-solid fa-award"></i>
                 </div>
-
-                <!-- Decorative Side Column -->
-                <div class="absolute top-0 right-0 bottom-0 w-6 sm:w-8 bg-[#A797B2]/5 border-l border-[#A797B2]/10 flex flex-col justify-around py-4 opacity-40 group-hover:opacity-100 transition-opacity">
-                    <i class="fa-solid fa-snowflake text-[7px] sm:text-[8px] text-[#A797B2] text-center"></i>
-                    <i class="fa-solid fa-snowflake text-[7px] sm:text-[8px] text-[#A797B2] text-center"></i>
-                    <i class="fa-solid fa-snowflake text-[7px] sm:text-[8px] text-[#A797B2] text-center"></i>
-                    <i class="fa-solid fa-snowflake text-[7px] sm:text-[8px] text-[#A797B2] text-center"></i>
-                    <i class="fa-solid fa-snowflake text-[7px] sm:text-[8px] text-[#A797B2] text-center"></i>
-                </div>
-
-                <!-- Main Content -->
-                <div class="relative h-full flex flex-col p-6 sm:p-10 z-20">
-                    
-                    <!-- Branding Header -->
-                    <div class="space-y-1">
-                        <h1 class="text-[1.35rem] sm:text-3xl font-serif font-light tracking-[0.05em] text-[#262320] uppercase flex items-center gap-2 sm:gap-3 leading-tight">
-                            Sanvaliya <span class="font-bold text-[#A797B2]">Seth</span>
-                            <i class="fa-solid fa-snowflake text-[10px] sm:text-xs text-[#A797B2]/40"></i>
-                        </h1>
-                        <div class="flex items-center gap-2">
-                            <div class="h-[1px] w-6 sm:w-8 bg-[#D3C9BC]"></div>
-                            <p class="text-[8px] sm:text-[9px] font-extrabold text-[#635C56] uppercase tracking-[0.3em]">
-                                Exquisite Retail Store
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Business Services -->
-                    <div class="mt-4 sm:mt-8 max-w-[85%] sm:max-w-[75%] border-l-2 border-[#E8E2D9] pl-4 sm:pl-5">
-                        <p class="text-[10px] sm:text-[13px] text-[#423D39] font-bold leading-relaxed italic opacity-90">
-                            Stationery &middot; Korean Vibes &middot; Gifts &middot; Toys &middot; General
-                        </p>
-                    </div>
-
-                    <!-- Interactive Bottom Bar - Optimized for Tap -->
-                    <div class="mt-auto flex items-center justify-between gap-2 pt-2">
-                        <div class="icon-tray flex items-center gap-2.5 sm:gap-4 bg-white/80 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-2.5 rounded-full sm:rounded-xl border border-white/90 shadow-sm">
-                            <a href="tel:+918302817703" class="text-[#423D39] hover:text-[#A797B2] transition-transform active:scale-90 p-1">
-                                <i class="fa-solid fa-phone text-sm sm:text-base"></i>
-                            </a>
-                            <div class="w-[1px] h-3 bg-[#D3C9BC]/50"></div>
-                            <a href="https://wa.me/918302817703" target="_blank" class="text-[#423D39] hover:text-emerald-700 transition-transform active:scale-90 p-1">
-                                <i class="fa-brands fa-whatsapp text-lg"></i>
-                            </a>
-                            <div class="w-[1px] h-3 bg-[#D3C9BC]/50"></div>
-                            <a href="https://www.instagram.com/sawriya_sty.general.s.dhmnod?igsh=a2tqeWR5djVzZnNq" target="_blank" class="text-[#423D39] hover:text-rose-600 transition-transform active:scale-90 p-1">
-                                <i class="fa-brands fa-instagram text-lg"></i>
-                            </a>
-                            <div class="w-[1px] h-3 bg-[#D3C9BC]/50"></div>
-                            <a href="https://www.google.com/maps/search/6F7F%2BM6+Dhamnod,+Madhya+Pradesh" target="_blank" class="text-[#423D39] hover:text-red-600 transition-transform active:scale-90 p-1">
-                                <i class="fa-solid fa-location-dot text-sm sm:text-base"></i>
-                            </a>
-                        </div>
-
-                        <div class="text-right shrink-0">
-                            <p class="text-[9px] sm:text-[10px] font-black text-[#262320] tracking-widest uppercase mb-0.5">Dhamnod</p>
-                            <p class="text-[7px] sm:text-[8px] font-bold text-[#635C56] uppercase tracking-tighter">MP, India</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#A797B2]/20 to-transparent"></div>
             </div>
             
-            <!-- Floor Shadow Effect -->
-            <div class="absolute -bottom-6 sm:-bottom-8 left-12 right-12 h-10 sm:h-12 bg-stone-900/[0.04] blur-2xl rounded-full -z-20"></div>
-        </div>
-
-        <!-- Action Buttons Section -->
-        <div class="no-print flex justify-center gap-10 sm:gap-14 pt-4">
-            <button onclick="window.print()" class="flex flex-col items-center gap-3 group">
-                <div class="w-14 h-14 rounded-full border border-[#D3C9BC] flex items-center justify-center bg-white text-[#423D39] group-hover:bg-[#423D39] group-hover:text-white transition-all duration-300 shadow-sm active:scale-95">
-                    <i class="fa-solid fa-print text-sm"></i>
+            <div class="mt-4">
+                <h2 class="text-[#262320] font-black text-xl uppercase tracking-widest">Store Voucher</h2>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Authentic Reward • Sanvaliya Seth</p>
+            </div>
+            
+            <div class="scratch-container">
+                <div id="reward-display" class="relative w-full h-full">
+                    <!-- Reward Ticket UI -->
+                    <div class="reward-ticket">
+                        <div class="ticket-stub">
+                            <span id="stub-id-text" class="stub-id">#SS-7703-OFF</span>
+                        </div>
+                        <div class="ticket-main">
+                            <div class="text-[#A797B2] mb-2 opacity-30"><i class="fa-solid fa-certificate text-3xl"></i></div>
+                            <span id="reward-type-label" class="reward-title-main">Official Gift</span>
+                            <span id="reward-value-text" class="reward-value-main">Premium Item</span>
+                            <span class="reward-serial" id="reward-serial-num">SN: 8302-8177-XXXX</span>
+                        </div>
+                    </div>
                 </div>
-                <span class="text-[8px] font-black uppercase tracking-[0.2em] text-[#423D39]">Print</span>
-            </button>
+                <canvas id="scratch-canvas" width="340" height="200"></canvas>
+            </div>
 
-            <button onclick="handleShare()" class="flex flex-col items-center gap-3 group">
-                <div class="w-14 h-14 rounded-full border border-[#D3C9BC] flex items-center justify-center bg-white text-[#423D39] group-hover:bg-[#A797B2] group-hover:text-white transition-all duration-300 shadow-sm active:scale-95">
-                    <i class="fa-solid fa-share-nodes text-sm"></i>
-                </div>
-                <span class="text-[8px] font-black uppercase tracking-[0.2em] text-[#423D39]">Share</span>
+            <div id="scratch-footer">
+                <p class="text-[8px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Transferable • Non-Refundable • Official</p>
+                <button id="apply-btn" onclick="applyCoupon()" class="apply-btn">
+                    Activate Reward
+                </button>
+            </div>
+            
+            <button onclick="closeScratch(event)" class="mt-6 text-[9px] font-black text-gray-300 uppercase hover:text-[#262320] tracking-widest transition-colors">
+                Dismiss
             </button>
-        </div>
-
-        <!-- Footer Text -->
-        <div class="text-center space-y-4 pt-4 sm:pt-8 opacity-60 no-print pb-8">
-            <p class="text-[16px] sm:text-[20px] font-serif font-bold italic text-[#262320]">
-                Quality & Tradition hand in hand.
-            </p>
-            <div class="h-px w-16 bg-[#D3C9BC] mx-auto opacity-50"></div>
-            <p class="text-[12px] sm:text-[14px] font-bold text-[#423D39] uppercase tracking-[0.3em]">
-                Sanvaliya Seth &copy; 2024
-            </p>
         </div>
     </div>
 
-    <!-- Vanilla JavaScript for Interactive Features -->
-    <script>
-        // 1. Snowfall Implementation - Optimized for performance
-        function initSnowfall() {
-            const container = document.getElementById('snow-container');
-            const symbols = ['❄', '❅', '❆', '✻'];
-            const count = 50; // Slightly reduced for better mobile performance
+    <div class="w-full max-w-[460px] relative z-10 flex flex-col items-center justify-center space-y-10">
+        
+        <div class="no-print">
+            <div class="inline-flex items-center gap-3 px-6 py-2.5 rounded-sm bg-white border border-[#D3C9BC] shadow-sm animate-pulse">
+                <i class="fa-solid fa-snowflake text-[#A797B2]"></i>
+                <span class="text-[10px] font-extrabold text-[#262320] uppercase tracking-[0.4em]">Winter Collection</span>
+            </div>
+        </div>
 
-            for (let i = 0; i < count; i++) {
-                const flake = document.createElement('div');
-                flake.className = 'snowflake';
-                flake.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+        <!-- The Visiting Card -->
+        <div class="card-container relative w-full aspect-[1.58/1] group select-none">
+            <div class="card-inner relative h-full w-full shadow-[0_5px_30px_rgba(0,0,0,0.05)] overflow-hidden border border-[#E8E2D9]">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none z-0 paper-grain"></div>
                 
-                // Random properties
-                const left = Math.random() * 100;
-                const delay = Math.random() * -20;
-                const duration = 10 + Math.random() * 15;
-                const size = 12 + Math.random() * 14;
-                const opacity = 0.2 + Math.random() * 0.5;
-                const sway = (Math.random() - 0.5) * 120;
-                const rotationEnd = Math.random() * 720;
+                <!-- Background Graphic -->
+                <div class="absolute -right-20 -top-20 w-[300px] h-[300px] opacity-[0.03] pointer-events-none z-10">
+                    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full rotate-45">
+                        <circle cx="100" cy="100" r="80" stroke="#4A443D" stroke-width="0.2" />
+                        <path d="M100 20 L100 180 M20 100 L180 100" stroke="#4A443D" stroke-width="0.2" />
+                    </svg>
+                </div>
 
-                // Apply styles
-                flake.style.left = `${left}%`;
-                flake.style.fontSize = `${size}px`;
-                flake.style.opacity = opacity;
-                flake.style.animationDuration = `${duration}s`;
-                flake.style.animationDelay = `${delay}s`;
-                flake.style.setProperty('--sway', `${sway}px`);
-                flake.style.setProperty('--rot', `${rotationEnd}deg`);
+                <div class="relative h-full flex flex-col p-8 sm:p-10 z-20">
+                    <!-- Branding -->
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-1">
+                            <h1 class="text-3xl sm:text-4xl font-serif font-light tracking-[0.02em] text-[#262320] uppercase leading-none">
+                                Sanvaliya <span class="font-bold text-[#A797B2]">Seth</span>
+                            </h1>
+                            <div class="flex items-center gap-3 pt-2">
+                                <div class="h-[1px] w-8 bg-[#A797B2]"></div>
+                                <p class="text-[10px] font-black text-[#262320] uppercase tracking-[0.3em]">
+                                    Stationery & General Store
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-                container.appendChild(flake);
+                    <!-- Services Grid -->
+                    <div class="mt-8 grid grid-cols-2 gap-x-8 gap-y-2.5 text-[10px] sm:text-[11px] text-[#262320] font-bold uppercase tracking-widest opacity-80">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-pen-nib text-[#A797B2]"></i><span>Fine Stationery</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-gift text-[#A797B2]"></i><span>Gift Wrapping</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-star text-[#A797B2]"></i><span>Korean Vibes</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-graduation-cap text-[#A797B2]"></i><span>School Supplies</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-heart text-[#A797B2]"></i><span>Bespoke Gifts</span></div>
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-shop text-[#A797B2]"></i><span>General Store</span></div>
+                    </div>
+
+                    <!-- Contact & Location -->
+                    <div class="mt-auto flex items-end justify-between border-t border-[#A797B2]/20 pt-6">
+                        <div class="flex items-center gap-6 text-[#262320]">
+                            <a href="tel:+918302817703" class="hover:text-[#A797B2] transition-transform hover:-translate-y-1"><i class="fa-solid fa-phone text-sm"></i></a>
+                            <a href="https://wa.me/918302817703" target="_blank" class="hover:text-emerald-600 transition-transform hover:-translate-y-1"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+                            <a href="https://www.instagram.com/sawriya_sty.general.s.dhmnod?igsh=a2tqeWR5djVzZnNq" target="_blank" class="hover:text-rose-500 transition-transform hover:-translate-y-1"><i class="fa-brands fa-instagram text-lg"></i></a>
+                            <a href="https://www.google.com/maps/search/6F7F%2BM6+Dhamnod,+Madhya+Pradesh" target="_blank" class="hover:text-red-600 transition-transform hover:-translate-y-1"><i class="fa-solid fa-location-dot text-sm"></i></a>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[11px] font-black text-[#262320] tracking-[0.2em] uppercase">Dhamnod, MP</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-[#A797B2]/30"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="no-print flex justify-center gap-8 pt-4">
+            <button onclick="window.print()" class="flex flex-col items-center gap-2 group w-20">
+                <div class="w-14 h-14 border border-[#D3C9BC] flex items-center justify-center bg-white text-[#262320] group-hover:bg-[#262320] group-hover:text-white group-hover:border-[#262320] transition-all">
+                    <i class="fa-solid fa-print text-lg"></i>
+                </div>
+                <span class="text-[9px] font-black uppercase tracking-widest text-[#423D39]">Print</span>
+            </button>
+
+            <button onclick="openScratch()" class="flex flex-col items-center gap-2 group w-20">
+                <div class="w-14 h-14 border border-[#262320] flex items-center justify-center bg-[#262320] text-white hover:bg-black transition-all">
+                    <i class="fa-solid fa-gift text-lg"></i>
+                </div>
+                <span class="text-[9px] font-black uppercase tracking-widest text-[#423D39]">Rewards</span>
+            </button>
+
+            <button onclick="handleShare()" class="flex flex-col items-center gap-2 group w-20">
+                <div class="w-14 h-14 border border-[#D3C9BC] flex items-center justify-center bg-white text-[#262320] group-hover:bg-[#262320] group-hover:text-white group-hover:border-[#262320] transition-all">
+                    <i class="fa-solid fa-share-nodes text-lg"></i>
+                </div>
+                <span class="text-[9px] font-black uppercase tracking-widest text-[#423D39]">Share</span>
+            </button>
+        </div>
+
+        <!-- Footer Section with Custom QR Design -->
+        <div class="footer-section text-center pb-24 no-print">
+            <div class="qr-wrapper">
+                <!-- Arrow SVG pointing at QR -->
+                <svg class="qr-arrow" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 80C25 85 50 80 65 60C70 50 68 40 60 30M60 30L55 40M60 30L70 35" stroke="#262320" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M65 60C75 45 90 40 95 60C98 80 85 90 70 85C60 82 55 75 58 65" stroke="#262320" stroke-width="2" stroke-dasharray="4 4" opacity="0.5"/>
+                </svg>
+
+                <div class="qr-frame">
+                    <div class="qr-frame-inner">
+                        <a href="https://x1magic.github.io/A/" target="_blank" class="block p-4 bg-white hover:scale-105 transition-transform duration-500">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://x1magic.github.io/A/" 
+                                 alt="Digital Card QR" 
+                                 class="w-32 h-32 sm:w-40 sm:h-40">
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="scan-me-text">Scan me</div>
+            </div>
+
+            <div class="mt-8 space-y-3">
+                <p class="text-[16px] font-serif font-bold italic text-[#262320] opacity-80">Quality you can trust.</p>
+                <div class="h-[1px] w-12 bg-[#A797B2] mx-auto opacity-20"></div>
+                <p class="text-[10px] font-black text-[#A797B2] uppercase tracking-[0.3em]">Sanvaliya Seth &copy; 2024</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 3D Tilt Effect
+        const card = document.querySelector('.card-inner');
+        const container = document.querySelector('.card-container');
+
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 15;
+            const rotateY = (centerX - x) / 15;
+
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            card.style.boxShadow = `${-rotateY * 2}px ${rotateX * 2}px 40px rgba(0,0,0,0.1)`;
+        });
+
+        container.addEventListener('mouseleave', () => {
+            card.style.transform = `rotateX(0deg) rotateY(0deg)`;
+            card.style.boxShadow = `0 5px 30px rgba(0,0,0,0.05)`;
+        });
+
+        // Official Scratch Logic
+        const rewards = [
+            { value: "Flat ₹10 OFF", type: "Member Discount", stub: "CODE-10X", serial: "SN: 8302-8177-010" },
+            { value: "Flat ₹20 OFF", type: "Store Credit", stub: "CODE-20X", serial: "SN: 8302-8177-020" },
+            { value: "Flat ₹5 OFF", type: "Voucher", stub: "CODE-05X", serial: "SN: 8302-8177-005" },
+            { value: "Free Gift", type: "Official Bonus", stub: "GIFT-77X", serial: "SN: 8302-8177-777" }
+        ];
+
+        let currentReward = null;
+        let revealed = false;
+        const canvas = document.getElementById('scratch-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        let isDrawing = false;
+
+        function initScratch() {
+            if (revealed) return;
+            currentReward = rewards[Math.floor(Math.random() * rewards.length)];
+            
+            document.getElementById('stub-id-text').textContent = currentReward.stub;
+            document.getElementById('reward-type-label').textContent = currentReward.type;
+            document.getElementById('reward-value-text').textContent = currentReward.value;
+            document.getElementById('reward-serial-num').textContent = currentReward.serial;
+
+            // Premium Metallic Gradient for Scratch Surface
+            ctx.globalCompositeOperation = 'source-over';
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#D1D5DB');
+            gradient.addColorStop(0.3, '#F3F4F6');
+            gradient.addColorStop(0.5, '#9CA3AF');
+            gradient.addColorStop(0.7, '#E5E7EB');
+            gradient.addColorStop(1, '#D1D5DB');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'rgba(0,0,0,0.03)';
+            for(let i=0; i<1000; i++) {
+                ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 1, 1);
+            }
+
+            ctx.fillStyle = '#4B5563';
+            ctx.font = '800 10px Plus Jakarta Sans';
+            ctx.textAlign = 'center';
+            ctx.letterSpacing = "2px";
+            ctx.fillText('OFFICIAL SCRATCH SURFACE', canvas.width/2, canvas.height/2 + 5);
+            
+            ctx.globalCompositeOperation = 'destination-out';
+        }
+
+        function openScratch() {
+            document.getElementById('scratch-modal').style.display = 'flex';
+            if (!revealed) {
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = canvas.parentElement.offsetHeight;
+                initScratch();
             }
         }
 
-        // 2. Share Functionality
+        function closeScratch() {
+            document.getElementById('scratch-modal').style.display = 'none';
+        }
+
+        function applyCoupon() {
+            const btn = document.getElementById('apply-btn');
+            const toast = document.getElementById('toast');
+            btn.innerHTML = "Voucher Active! ✅";
+            btn.style.background = "#10b981";
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                closeScratch();
+            }, 2000);
+        }
+
+        function scratch(e) {
+            if (!isDrawing || revealed) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (Math.random() > 0.85) {
+                confetti({
+                    particleCount: 2,
+                    angle: 60,
+                    spread: 40,
+                    origin: { x: (x + rect.left) / window.innerWidth, y: (y + rect.top) / window.innerHeight },
+                    colors: ['#A797B2', '#262320', '#FFFFFF']
+                });
+            }
+
+            checkReveal();
+        }
+
+        function checkReveal() {
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let transparent = 0;
+            for (let i = 3; i < data.length; i += 4) { if (data[i] === 0) transparent++; }
+            if (transparent / (data.length / 4) > 0.45) {
+                revealed = true;
+                canvas.style.transition = "opacity 0.8s ease-out, transform 0.8s ease-out";
+                canvas.style.opacity = "0";
+                canvas.style.transform = "scale(1.1)";
+                document.getElementById('apply-btn').classList.add('active');
+                confetti({
+                    particleCount: 100,
+                    spread: 60,
+                    origin: { y: 0.6 },
+                    colors: ['#A797B2', '#262320']
+                });
+            }
+        }
+
+        canvas.addEventListener('mousedown', () => isDrawing = true);
+        canvas.addEventListener('touchstart', (e) => { isDrawing = true; e.preventDefault(); });
+        window.addEventListener('mouseup', () => isDrawing = false);
+        window.addEventListener('touchend', () => isDrawing = false);
+        canvas.addEventListener('mousemove', scratch);
+        canvas.addEventListener('touchmove', (e) => { scratch(e); e.preventDefault(); });
+
+        function initSnowfall() {
+            const container = document.getElementById('snow-container');
+            const symbols = ['❄', '❅', '❆'];
+            for (let i = 0; i < 35; i++) {
+                setTimeout(() => {
+                    const flake = document.createElement('div');
+                    flake.className = 'snowflake';
+                    flake.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                    flake.style.left = `${Math.random() * 100}%`;
+                    flake.style.fontSize = `${10 + Math.random() * 12}px`;
+                    flake.style.animationDuration = `${12 + Math.random() * 15}s`;
+                    flake.style.setProperty('--sway', `${(Math.random()-0.5)*120}px`);
+                    flake.style.setProperty('--rot', `${(Math.random()-0.5)*1080}deg`);
+                    container.appendChild(flake);
+                    requestAnimationFrame(() => flake.style.opacity = '0.4');
+                }, i * 250);
+            }
+        }
+
         async function handleShare() {
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: 'Sanvaliya Seth - Designer Card',
-                        text: 'Quality Stationery, Korean Vibes, and Bespoke Gifts at Sanvaliya Seth, Dhamnod.',
+                        title: 'Sanvaliya Seth',
+                        text: 'Digital Card of Sanvaliya Seth Stationery & General Store.',
                         url: window.location.href
                     });
-                } catch (err) {
-                    console.log('Share canceled or failed:', err);
-                }
-            } else {
-                // Fallback for copy link
-                const dummy = document.createElement('input');
-                document.body.appendChild(dummy);
-                dummy.value = window.location.href;
-                dummy.select();
-                document.execCommand('copy');
-                document.body.removeChild(dummy);
-                alert('Link copied to clipboard!');
+                } catch (err) {}
             }
         }
 
-        // 3. Initialize on Load
         window.addEventListener('DOMContentLoaded', () => {
             initSnowfall();
-            
-            // Fade in body
-            setTimeout(() => {
-                document.body.classList.add('opacity-100');
-                document.body.classList.remove('opacity-0');
-            }, 50);
+            setTimeout(() => document.body.classList.add('opacity-100'), 50);
         });
     </script>
 </body>
